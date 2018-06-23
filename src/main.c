@@ -9,13 +9,7 @@
 #define TRUE                1
 #define FALSE               0
 
-void write_file(int lockFile){
-
-    FILE* fd = fopen(FILE_NAME, "a");
-
-    if(lockFile){
-        flockfile(fd);
-    }
+void write_file(FILE *fd){
 
     char hostname[1024];
     gethostname(hostname, 1024);
@@ -28,25 +22,54 @@ void write_file(int lockFile){
     struct tm *current = localtime(&current_time);
     fprintf(fd,"Docker name: %s  Time: %d:%d:%d\n", hostname, current->tm_hour, current->tm_min, current->tm_sec);
 
+}
 
-    if(lockFile){
-        funlockfile(fd);
+void read_file(FILE *fd){
+    char *buffer = NULL;
+    int string_size, read_size;
+
+    if (fd)
+    {
+        fseek(fd, 0, SEEK_END);
+        string_size = ftell(fd);
+
+        rewind(fd);
+
+        buffer = (char*) malloc(sizeof(char) * (string_size + 1) );
+
+        read_size = fread(buffer, sizeof(char), string_size, fd);
+
+        buffer[string_size] = '\0';
+
+        if (string_size != read_size)
+        {
+            free(buffer);
+            buffer = NULL;
+        }
     }
 
-    fclose(fd);
+    printf("\nLeitura:\n %s", buffer);
 }
 
 int main(int argc, char **argv) {
     int nExecutions = NUMBER_EXECUTIONS;
 
-    while(nExecutions--){
-        if(argc > 1) {
-            write_file(TRUE);
-        } else {
-            write_file(FALSE);
-        }
-        sleep(5);
+    FILE* fd = fopen(FILE_NAME, "a+");
+
+    if(argc > 1){
+        flockfile(fd);
     }
+
+    while(nExecutions--){
+        write_file(fd);
+        read_file(fd);
+    }
+
+    if(argc > 1){
+        funlockfile(fd);
+    }
+
+    fclose(fd);
 
     return 0;
 }
