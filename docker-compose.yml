@@ -1,0 +1,21 @@
+version: '3'
+services:
+    concurrency_file1:
+        build:
+          context: .
+        hostname: Docker_1
+        volumes:
+            - ./:/app
+    concurrency_file2:
+        build:
+          context: .
+        hostname: Docker_2
+        volumes:
+            - ./:/app
+
+    concurrency_file3:
+        build:
+          context: .
+        hostname: Docker_3
+        volumes:
+            - ./:/app
